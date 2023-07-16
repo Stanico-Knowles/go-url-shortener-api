@@ -4,6 +4,7 @@ import (
 	"go-url-shortener-api/src/middlewares"
 	shortenerattributes "go-url-shortener-api/src/url_shortener/attributes"
 	urlshortenerenums "go-url-shortener-api/src/url_shortener/enums"
+	"log"
 	"net/http"
 )
 
@@ -24,9 +25,10 @@ func NewURLShortenerService(repo URLShortenerRepo) URLShortenerService {
 }
 
 func (service *urlShortenerService) CreateShortURL(originalUrl *shortenerattributes.CreateShortURLAttributes, alias string) (*shortenerattributes.ShortUrlResponseAttributes, middlewares.ErrorResponse) {
-	existingUrl, _ := service.repo.GetOriginalURL(alias)
+	existingUrl, _ := service.repo.GetURLSByOriginalURL(originalUrl.LongURL)
 
 	if existingUrl != nil {
+		log.Println(existingUrl)
 		return existingUrl, middlewares.ErrorResponse{}
 	}
 	newUrl, err := service.repo.CreateShortURL(originalUrl, alias)

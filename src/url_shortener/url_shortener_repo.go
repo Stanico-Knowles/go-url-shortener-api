@@ -14,6 +14,7 @@ type urlShortenerRepo struct {
 type URLShortenerRepo interface {
 	CreateShortURL(originalUrl *shortenerattributes.CreateShortURLAttributes, alias string) (*shortenerattributes.ShortUrlResponseAttributes, error)
 	GetOriginalURL(shortUrl string) (*shortenerattributes.ShortUrlResponseAttributes, error)
+	GetURLSByOriginalURL(originalUrl string) (*shortenerattributes.ShortUrlResponseAttributes, error)
 }
 
 func NewURLShortenerRepo(db *gorm.DB) URLShortenerRepo {
@@ -38,6 +39,15 @@ func (repo *urlShortenerRepo) CreateShortURL(originalUrl *shortenerattributes.Cr
 func (repo *urlShortenerRepo) GetOriginalURL(shortUrl string) (*shortenerattributes.ShortUrlResponseAttributes, error) {
 	var urlShortener URLShortener
 	result := repo.DB.Where("alias = ?", shortUrl).First(&urlShortener)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return toURLResponseDTO(&urlShortener), nil
+}
+
+func (repo *urlShortenerRepo) GetURLSByOriginalURL(originalUrl string) (*shortenerattributes.ShortUrlResponseAttributes, error) {
+	var urlShortener URLShortener
+	result := repo.DB.Where("original_url = ?", originalUrl).First(&urlShortener)
 	if result.Error != nil {
 		return nil, result.Error
 	}
