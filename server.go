@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"go-url-shortener-api/src/database"
 	"go-url-shortener-api/src/middlewares"
 	"go-url-shortener-api/src/router"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -24,5 +26,5 @@ func main() {
 	apiV1 := server.Group("/api/v1")
 	router.InitURLShortenerRouter(apiV1, db)
 
-	server.Run()
+	server.Run(fmt.Sprintf(":%s", os.Getenv("PORT")))
 }
