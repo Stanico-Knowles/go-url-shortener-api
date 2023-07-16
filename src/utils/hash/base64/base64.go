@@ -10,6 +10,5 @@ import (
 func EncodeBase64(plainText string) string {
 	data := strconv.FormatInt(time.Now().Unix(), 10) + plainText
 	hash := sha1.Sum([]byte(data))
-	encoded := base64.URLEncoding.EncodeToString(hash[:])
-	return encoded[:8]
+	return base64.URLEncoding.EncodeToString(hash[:])[:8]
 }
