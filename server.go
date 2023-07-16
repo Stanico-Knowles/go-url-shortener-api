@@ -19,9 +19,10 @@ func main() {
 	server := gin.Default()
 	server.SetTrustedProxies(nil)
 	server.Use(middlewares.CORS())
-	
+	server.Use(middlewares.ErrorMiddleware())
+
 	apiV1 := server.Group("/api/v1")
 	router.InitURLShortenerRouter(apiV1, db)
-	
+
 	server.Run()
 }
