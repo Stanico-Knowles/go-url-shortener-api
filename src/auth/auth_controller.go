@@ -3,6 +3,7 @@ package auth
 import (
 	"fmt"
 	authattributes "go-url-shortener-api/src/auth/attributes"
+	authenums "go-url-shortener-api/src/auth/enums"
 	"go-url-shortener-api/src/middlewares"
 	"go-url-shortener-api/src/redis"
 	"net/http"
@@ -30,7 +31,7 @@ func NewAuthController(service AuthService) AuthController {
 func (controller *authController) Login(ctx *gin.Context) {
 	var credentials authattributes.LoginDTO
 	if err := ctx.ShouldBindJSON(&credentials); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": authenums.INVALID_REQUEST})
 		return
 	}
 	validationErrors := controller.service.ValidateLogin(&credentials)
@@ -46,23 +47,23 @@ func (controller *authController) Login(ctx *gin.Context) {
 	var sessionId uuid.UUID = uuid.New()
 	redis.SetItem(fmt.Sprintf("session:%s", sessionId), userData)
 	ctx.SetCookie("sid", sessionId.String(), 3600, "/", "localhost", false, true)
-	ctx.JSON(200, gin.H{"user": userData})
+	ctx.JSON(http.StatusOK, gin.H{"user": userData})
 }
 
 func (controller *authController) Authenticate(ctx *gin.Context) {
 	sessionId, err := ctx.Cookie("sid")
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "You are not logged in err 1"})
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": middlewares.UNAUTHORIZED})
 		return
 	}
 	session, err := redis.GetItem(fmt.Sprintf("session:%s", sessionId))
 
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "You are not logged in err 2"})
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": middlewares.UNAUTHORIZED})
 		return
 	}
 	if session == "" {
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "You are not logged in err 3"})
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": middlewares.UNAUTHORIZED})
 		return
 	}
 	ctx.Status(http.StatusOK)
@@ -71,10 +72,10 @@ func (controller *authController) Authenticate(ctx *gin.Context) {
 func (controller *authController) Logout(ctx *gin.Context) {
 	sessionId, err := ctx.Cookie("sid")
 	if err != nil {
-		ctx.AbortWithStatusJSON(401, gin.H{"error": "You are not logged in"})
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": middlewares.UNAUTHORIZED})
 		return
 	}
 	redis.DeleteItem(fmt.Sprintf("session:%s", sessionId))
 	ctx.SetCookie("sid", "", -1, "/", "localhost", false, true)
-	ctx.JSON(200, gin.H{"message": "You are logged out"})
+	ctx.JSON(http.StatusOK, gin.H{"message": "You are logged out"})
 }
