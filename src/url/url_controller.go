@@ -38,8 +38,7 @@ func (controller *urlShortenerController) CreateShortURL(ctx *gin.Context) {
 	if url.Alias == "" {
 		url.Alias = base64encryptionservice.EncodeBase64(url.LongURL)
 	}
-	userId := ctx.GetString("userId")
-	if userId != "" {
+	if userId := ctx.GetString("userId"); userId != "" {
 		url.UserID = userId
 	}
 	createdUrl, err := controller.service.CreateShortURL(&url)
