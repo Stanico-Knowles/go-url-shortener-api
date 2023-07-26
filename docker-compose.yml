@@ -28,6 +28,20 @@ services:
     networks:
       - my-app-network
 
+  gin_app:
+    build: .
+    container_name: my-gin-app
+    restart: always
+    depends_on:
+      - database
+      - redis
+    env_file:
+      - .env
+    ports:
+      - "5000:5000"
+    networks:
+      - my-app-network
+
 volumes:
   data:
   cache:
