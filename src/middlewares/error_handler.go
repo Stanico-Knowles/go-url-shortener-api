@@ -11,12 +11,16 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
+const (
+	INTERNAL_SERVER_ERROR string = "An unexpected error occurred"
+)
+
 func ErrorMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		defer func() {
 			if r := recover(); r != nil {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-					"error": "An unexpected error occurred",
+					"error": INTERNAL_SERVER_ERROR,
 				})
 			}
 		}()
