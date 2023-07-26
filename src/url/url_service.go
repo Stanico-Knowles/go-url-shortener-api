@@ -2,8 +2,8 @@ package urlshortener
 
 import (
 	"go-url-shortener-api/src/middlewares"
-	shortenerattributes "go-url-shortener-api/src/url_shortener/attributes"
-	urlshortenerenums "go-url-shortener-api/src/url_shortener/enums"
+	shortenerattributes "go-url-shortener-api/src/url/attributes"
+	urlenums "go-url-shortener-api/src/url/enums"
 	"net/http"
 )
 
@@ -12,7 +12,7 @@ type urlShortenerService struct {
 }
 
 type URLShortenerService interface {
-	CreateShortURL(originalUrl *shortenerattributes.CreateShortURLAttributes, alias string) (*shortenerattributes.ShortUrlResponseAttributes, middlewares.ErrorResponse)
+	CreateShortURL(originalUrl *shortenerattributes.CreateShortURLAttributes) (*shortenerattributes.ShortUrlResponseAttributes, middlewares.ErrorResponse)
 	GetOriginalURL(shortUrl string) (*shortenerattributes.ShortUrlResponseAttributes, middlewares.ErrorResponse)
 	ValidateInputURL(url string) middlewares.ErrorResponse
 }
@@ -23,13 +23,19 @@ func NewURLShortenerService(repo URLShortenerRepo) URLShortenerService {
 	}
 }
 
-func (service *urlShortenerService) CreateShortURL(originalUrl *shortenerattributes.CreateShortURLAttributes, alias string) (*shortenerattributes.ShortUrlResponseAttributes, middlewares.ErrorResponse) {
+func (service *urlShortenerService) CreateShortURL(originalUrl *shortenerattributes.CreateShortURLAttributes) (*shortenerattributes.ShortUrlResponseAttributes, middlewares.ErrorResponse) {
+	existingAlias, _ := service.repo.GetOriginalURL(originalUrl.Alias)
+	if existingAlias != nil {
+		return nil, middlewares.ErrorResponse{
+			Status:  http.StatusConflict,
+			Message: urlenums.ALIAS_ALREADY_EXISTS,
+		}
+	}
 	existingUrl, _ := service.repo.GetURLSByOriginalURL(originalUrl.LongURL)
-
 	if existingUrl != nil {
 		return existingUrl, middlewares.ErrorResponse{}
 	}
-	newUrl, err := service.repo.CreateShortURL(originalUrl, alias)
+	newUrl, err := service.repo.CreateShortURL(originalUrl)
 	if err != nil {
 		return nil, middlewares.ErrorResponse{
 			Status:  http.StatusInternalServerError,
@@ -44,7 +50,7 @@ func (service *urlShortenerService) GetOriginalURL(shortUrl string) (*shortenera
 	if url == nil {
 		return nil, middlewares.ErrorResponse{
 			Status:  http.StatusNotFound,
-			Message: urlshortenerenums.URL_NOT_FOUND,
+			Message: urlenums.URL_NOT_FOUND,
 		}
 	}
 	return url, middlewares.ErrorResponse{}
@@ -54,7 +60,7 @@ func (service *urlShortenerService) ValidateInputURL(url string) middlewares.Err
 	if url == "" {
 		return middlewares.ErrorResponse{
 			Status:  http.StatusBadRequest,
-			Message: urlshortenerenums.URL_IS_REQUIRED,
+			Message: urlenums.URL_IS_REQUIRED,
 		}
 	}
 	return middlewares.ErrorResponse{}

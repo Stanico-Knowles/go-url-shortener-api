@@ -1,9 +1,8 @@
 package urlshortener
 
 import (
-	"errors"
 	"go-url-shortener-api/src/middlewares"
-	shortenerattributes "go-url-shortener-api/src/url_shortener/attributes"
+	shortenerattributes "go-url-shortener-api/src/url/attributes"
 	base64encryptionservice "go-url-shortener-api/src/utils/hash/base64"
 	"net/http"
 
@@ -28,10 +27,7 @@ func NewURLShortenerController(service URLShortenerService) URLShortenerControll
 func (controller *urlShortenerController) CreateShortURL(ctx *gin.Context) {
 	var url shortenerattributes.CreateShortURLAttributes
 	if err := ctx.ShouldBindJSON(&url); err != nil {
-		ctx.Error(&gin.Error{
-			Type: gin.ErrorTypePublic,
-			Err:  errors.New(err.Error()),
-		})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 	validationErrors := controller.service.ValidateInputURL(url.LongURL)
@@ -39,13 +35,15 @@ func (controller *urlShortenerController) CreateShortURL(ctx *gin.Context) {
 		ctx.JSON(validationErrors.Status, gin.H{"error": validationErrors.Message})
 		return
 	}
-	var alias string
-	if url.Alias == nil || *url.Alias == "" {
-		alias = base64encryptionservice.EncodeBase64(url.LongURL)
-	} else {
-		alias = *url.Alias
+	var alias string = base64encryptionservice.EncodeBase64(url.LongURL)
+	if url.Alias == "" {
+		url.Alias = alias
 	}
-	createdUrl, err := controller.service.CreateShortURL(&url, alias)
+	userId := ctx.GetString("userId")
+	if userId != "" {
+		url.UserID = userId
+	}
+	createdUrl, err := controller.service.CreateShortURL(&url)
 	if err != (middlewares.ErrorResponse{}) {
 		ctx.JSON(err.Status, gin.H{"error": err.Message})
 		return

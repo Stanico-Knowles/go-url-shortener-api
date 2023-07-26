@@ -1,7 +1,7 @@
 package urlshortener
 
 import (
-	shortenerattributes "go-url-shortener-api/src/url_shortener/attributes"
+	shortenerattributes "go-url-shortener-api/src/url/attributes"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -12,7 +12,7 @@ type urlShortenerRepo struct {
 }
 
 type URLShortenerRepo interface {
-	CreateShortURL(originalUrl *shortenerattributes.CreateShortURLAttributes, alias string) (*shortenerattributes.ShortUrlResponseAttributes, error)
+	CreateShortURL(originalUrl *shortenerattributes.CreateShortURLAttributes) (*shortenerattributes.ShortUrlResponseAttributes, error)
 	GetOriginalURL(shortUrl string) (*shortenerattributes.ShortUrlResponseAttributes, error)
 	GetURLSByOriginalURL(originalUrl string) (*shortenerattributes.ShortUrlResponseAttributes, error)
 }
@@ -23,11 +23,20 @@ func NewURLShortenerRepo(db *gorm.DB) URLShortenerRepo {
 	}
 }
 
-func (repo *urlShortenerRepo) CreateShortURL(originalUrl *shortenerattributes.CreateShortURLAttributes, alias string) (*shortenerattributes.ShortUrlResponseAttributes, error) {
-	newUrl := URLShortener{
+func (repo *urlShortenerRepo) CreateShortURL(originalUrl *shortenerattributes.CreateShortURLAttributes) (*shortenerattributes.ShortUrlResponseAttributes, error) {
+	newUrl := URL{
 		ID:          uuid.New(),
-		Alias:       alias,
+		Alias:       originalUrl.Alias,
 		OriginalURL: originalUrl.LongURL,
+	}
+	if originalUrl.UserID != "" {
+		id, err := uuid.Parse(originalUrl.UserID)
+		if err != nil {
+			return nil, err
+		}
+		if id != uuid.Nil {
+			newUrl.UserID = &id
+		}
 	}
 	result := repo.DB.Create(&newUrl)
 	if result.Error != nil {
@@ -37,7 +46,7 @@ func (repo *urlShortenerRepo) CreateShortURL(originalUrl *shortenerattributes.Cr
 }
 
 func (repo *urlShortenerRepo) GetOriginalURL(shortUrl string) (*shortenerattributes.ShortUrlResponseAttributes, error) {
-	var urlShortener URLShortener
+	var urlShortener URL
 	result := repo.DB.Where("alias = ?", shortUrl).First(&urlShortener)
 	if result.Error != nil {
 		return nil, result.Error
@@ -46,7 +55,7 @@ func (repo *urlShortenerRepo) GetOriginalURL(shortUrl string) (*shortenerattribu
 }
 
 func (repo *urlShortenerRepo) GetURLSByOriginalURL(originalUrl string) (*shortenerattributes.ShortUrlResponseAttributes, error) {
-	var urlShortener URLShortener
+	var urlShortener URL
 	result := repo.DB.Where("original_url = ?", originalUrl).First(&urlShortener)
 	if result.Error != nil {
 		return nil, result.Error
@@ -54,7 +63,7 @@ func (repo *urlShortenerRepo) GetURLSByOriginalURL(originalUrl string) (*shorten
 	return toURLResponseDTO(&urlShortener), nil
 }
 
-func toURLResponseDTO(urlShortener *URLShortener) *shortenerattributes.ShortUrlResponseAttributes {
+func toURLResponseDTO(urlShortener *URL) *shortenerattributes.ShortUrlResponseAttributes {
 	return &shortenerattributes.ShortUrlResponseAttributes{
 		Alias:       urlShortener.Alias,
 		OriginalUrl: urlShortener.OriginalURL,
