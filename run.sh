@@ -7,7 +7,6 @@ if [ -f .env ]; then
   source .env
   set +a
 
-  # Run Go project
   go run server.go
 else
   echo "Error: .env file not found."
