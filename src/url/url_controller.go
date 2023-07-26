@@ -49,10 +49,10 @@ func (controller *urlShortenerController) CreateShortURL(ctx *gin.Context) {
 }
 
 func (controller *urlShortenerController) GetOriginalURL(ctx *gin.Context) {
-	response, err := controller.service.GetOriginalURL(ctx.Param("shortUrl"))
+	url, err := controller.service.GetOriginalURL(ctx.Param("shortUrl"))
 	if err != (middlewares.ErrorResponse{}) {
 		ctx.JSON(err.Status, gin.H{"error": err.Message})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"urls": response})
+	ctx.Redirect(http.StatusMovedPermanently, url.OriginalUrl)
 }
