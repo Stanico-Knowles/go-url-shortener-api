@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -19,6 +20,7 @@ func ErrorMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		defer func() {
 			if r := recover(); r != nil {
+				log.Println(r)
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 					"error": INTERNAL_SERVER_ERROR,
 				})
