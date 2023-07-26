@@ -3,7 +3,7 @@ package urlshortener
 import (
 	"go-url-shortener-api/src/middlewares"
 	shortenerattributes "go-url-shortener-api/src/url/attributes"
-	base64encryptionservice "go-url-shortener-api/src/utils/hash/base64"
+	urlenums "go-url-shortener-api/src/url/enums"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -27,15 +27,12 @@ func NewURLShortenerController(service URLShortenerService) URLShortenerControll
 func (controller *urlShortenerController) CreateShortURL(ctx *gin.Context) {
 	var url shortenerattributes.CreateShortURLAttributes
 	if err := ctx.ShouldBindJSON(&url); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": urlenums.INVALID_REQUEST})
 		return
 	}
-	if validationErrors := controller.service.ValidateInputURL(url.Alias); validationErrors != (middlewares.ErrorResponse{}) {
+	if validationErrors := controller.service.ValidateInputURL(url.LongURL); validationErrors != (middlewares.ErrorResponse{}) {
 		ctx.JSON(validationErrors.Status, gin.H{"error": validationErrors.Message})
 		return
-	}
-	if url.Alias == "" {
-		url.Alias = base64encryptionservice.EncodeBase64(url.LongURL)
 	}
 	if userId := ctx.GetString("userId"); userId != "" {
 		url.UserID = userId

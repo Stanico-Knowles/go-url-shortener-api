@@ -4,6 +4,7 @@ import (
 	"go-url-shortener-api/src/middlewares"
 	shortenerattributes "go-url-shortener-api/src/url/attributes"
 	urlenums "go-url-shortener-api/src/url/enums"
+	base64encryptionservice "go-url-shortener-api/src/utils/hash/base64"
 	"net/http"
 )
 
@@ -24,15 +25,17 @@ func NewURLShortenerService(repo URLShortenerRepo) URLShortenerService {
 }
 
 func (service *urlShortenerService) CreateShortURL(originalUrl *shortenerattributes.CreateShortURLAttributes) (*shortenerattributes.ShortUrlResponseAttributes, middlewares.ErrorResponse) {
-	existingAlias, _ := service.repo.GetOriginalURL(originalUrl.Alias)
-	if existingAlias != nil {
-		return nil, middlewares.ErrorResponse{
-			Status:  http.StatusConflict,
-			Message: urlenums.ALIAS_ALREADY_EXISTS,
+	if originalUrl.Alias != "" {
+		if count, _ := service.getCountOfField("alias", originalUrl.Alias); count > 0 {
+			return nil, middlewares.ErrorResponse{
+				Status:  http.StatusBadRequest,
+				Message: urlenums.ALIAS_ALREADY_EXISTS,
+			}
 		}
+	} else {
+		originalUrl.Alias = base64encryptionservice.EncodeBase64(originalUrl.LongURL)
 	}
-	existingUrl, _ := service.repo.GetURLSByOriginalURL(originalUrl.LongURL)
-	if existingUrl != nil {
+	if existingUrl, _ := service.repo.GetURLSByOriginalURL(originalUrl.LongURL); existingUrl != nil {
 		return existingUrl, middlewares.ErrorResponse{}
 	}
 	newUrl, err := service.repo.CreateShortURL(originalUrl)
@@ -64,4 +67,12 @@ func (service *urlShortenerService) ValidateInputURL(url string) middlewares.Err
 		}
 	}
 	return middlewares.ErrorResponse{}
+}
+
+func (service *urlShortenerService) getCountOfField(field string, value string) (int64, error) {
+	count, err := service.repo.GetCountOfField(field, value)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }
