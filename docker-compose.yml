@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  redis:
+      image: redis:6.2-alpine
+      restart: always
+      ports:
+        - "6379:6379"
+      volumes:
+        - cache:/data
+      networks:
+        - my-app-network
+
+  database:
+    container_name: database
+    platform: linux/amd64
+    restart: unless-stopped
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    volumes:
+      - data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - my-app-network
+
+volumes:
+  data:
+  cache:
+
+networks:
+  my-app-network:
+    name: My-App-Network
+    driver: bridge

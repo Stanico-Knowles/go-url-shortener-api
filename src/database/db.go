@@ -18,7 +18,7 @@ func Connect() *gorm.DB {
 			os.Getenv("DB_PASSWORD"),
 			os.Getenv("DB_HOST"),
 			os.Getenv("DB_PORT"),
-			os.Getenv("DB_SCHEMA"),
+			os.Getenv("DB_NAME"),
 		),
 		DefaultStringSize:         256,                // add default size for string fields, by default, will use db type `longtext` for fields without size, not a primary key, no index defined and don't have default values
 		DisableDatetimePrecision:  true,               // disable datetime precision support, which not supported before MySQL 5.6
