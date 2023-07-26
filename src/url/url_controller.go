@@ -30,8 +30,7 @@ func (controller *urlShortenerController) CreateShortURL(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
-	validationErrors := controller.service.ValidateInputURL(url.LongURL)
-	if validationErrors != (middlewares.ErrorResponse{}) {
+	if validationErrors := controller.service.ValidateInputURL(url.Alias); validationErrors != (middlewares.ErrorResponse{}) {
 		ctx.JSON(validationErrors.Status, gin.H{"error": validationErrors.Message})
 		return
 	}
