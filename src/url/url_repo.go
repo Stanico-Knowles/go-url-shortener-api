@@ -15,6 +15,7 @@ type URLShortenerRepo interface {
 	CreateShortURL(originalUrl *shortenerattributes.CreateShortURLAttributes) (*shortenerattributes.ShortUrlResponseAttributes, error)
 	GetOriginalURL(shortUrl string) (*shortenerattributes.ShortUrlResponseAttributes, error)
 	GetURLSByOriginalURL(originalUrl string) (*shortenerattributes.ShortUrlResponseAttributes, error)
+	GetCountOfField(field string, value string) (int64, error)
 }
 
 func NewURLShortenerRepo(db *gorm.DB) URLShortenerRepo {
@@ -43,6 +44,15 @@ func (repo *urlShortenerRepo) CreateShortURL(originalUrl *shortenerattributes.Cr
 		return nil, result.Error
 	}
 	return toURLResponseDTO(&newUrl), nil
+}
+
+func (repo *urlShortenerRepo) GetCountOfField(field string, value string) (int64, error) {
+	var count int64
+	result := repo.DB.Model(&URL{}).Where(field+" = ?", value).Count(&count)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+	return count, nil
 }
 
 func (repo *urlShortenerRepo) GetOriginalURL(shortUrl string) (*shortenerattributes.ShortUrlResponseAttributes, error) {
