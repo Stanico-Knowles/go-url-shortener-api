@@ -16,6 +16,7 @@ type urlShortenerController struct {
 type URLShortenerController interface {
 	CreateShortURL(ctx *gin.Context)
 	GetOriginalURL(ctx *gin.Context)
+	GetURLSByUserID(ctx *gin.Context)
 }
 
 func NewURLShortenerController(service URLShortenerService) URLShortenerController {
@@ -52,4 +53,13 @@ func (controller *urlShortenerController) GetOriginalURL(ctx *gin.Context) {
 		return
 	}
 	ctx.Redirect(http.StatusMovedPermanently, url.OriginalUrl)
+}
+
+func (controller *urlShortenerController) GetURLSByUserID(ctx *gin.Context) {
+	urls, err := controller.service.GetURLSByUserID(ctx.GetString("userId"))
+	if err != (middlewares.ErrorResponse{}) {
+		ctx.JSON(err.Status, gin.H{"error": err.Message})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"urls": urls})
 }

@@ -15,6 +15,7 @@ type urlShortenerService struct {
 type URLShortenerService interface {
 	CreateShortURL(originalUrl *shortenerattributes.CreateShortURLAttributes) (*shortenerattributes.ShortUrlResponseAttributes, middlewares.ErrorResponse)
 	GetOriginalURL(shortUrl string) (*shortenerattributes.ShortUrlResponseAttributes, middlewares.ErrorResponse)
+	GetURLSByUserID(userID string) ([]*shortenerattributes.ShortUrlResponseAttributes, middlewares.ErrorResponse)
 	ValidateInputURL(url string) middlewares.ErrorResponse
 }
 
@@ -57,6 +58,17 @@ func (service *urlShortenerService) GetOriginalURL(shortUrl string) (*shortenera
 		}
 	}
 	return url, middlewares.ErrorResponse{}
+}
+
+func (service *urlShortenerService) GetURLSByUserID(userID string) ([]*shortenerattributes.ShortUrlResponseAttributes, middlewares.ErrorResponse) {
+	if userID == "" {
+		return nil, middlewares.ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Message: urlenums.INVALID_REQUEST,
+		}
+	}
+	urls, _ := service.repo.GetURLSByUserID(userID)
+	return urls, middlewares.ErrorResponse{}
 }
 
 func (service *urlShortenerService) ValidateInputURL(url string) middlewares.ErrorResponse {

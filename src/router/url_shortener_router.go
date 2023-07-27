@@ -13,4 +13,5 @@ func InitURLShortenerRouter(api *gin.RouterGroup, db *gorm.DB) {
 	service := urlshortener.NewURLShortenerService(repo)
 	api.POST("/shorten", middlewares.GetUserInfo(), urlshortener.NewURLShortenerController(service).CreateShortURL)
 	api.GET("/:shortUrl", urlshortener.NewURLShortenerController(service).GetOriginalURL)
+	api.GET("/current-user/urls", middlewares.AuthMiddleware(), urlshortener.NewURLShortenerController(service).GetURLSByUserID)
 }

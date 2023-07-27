@@ -15,6 +15,7 @@ type URLShortenerRepo interface {
 	CreateShortURL(originalUrl *shortenerattributes.CreateShortURLAttributes) (*shortenerattributes.ShortUrlResponseAttributes, error)
 	GetOriginalURL(shortUrl string) (*shortenerattributes.ShortUrlResponseAttributes, error)
 	GetURLSByOriginalURL(originalUrl string) (*shortenerattributes.ShortUrlResponseAttributes, error)
+	GetURLSByUserID(userID string) ([]*shortenerattributes.ShortUrlResponseAttributes, error)
 	GetCountOfField(field string, value string) (int64, error)
 }
 
@@ -71,6 +72,16 @@ func (repo *urlShortenerRepo) GetURLSByOriginalURL(originalUrl string) (*shorten
 		return nil, result.Error
 	}
 	return toURLResponseDTO(&urlShortener), nil
+}
+
+func (repo *urlShortenerRepo) GetURLSByUserID(userID string) ([]*shortenerattributes.ShortUrlResponseAttributes, error) {
+	var urlResponseDTO []*shortenerattributes.ShortUrlResponseAttributes
+	result := repo.DB.Model(&URL{}).Where("user_id = ?", userID).Find(&urlResponseDTO)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return urlResponseDTO, nil
+
 }
 
 func toURLResponseDTO(urlShortener *URL) *shortenerattributes.ShortUrlResponseAttributes {
