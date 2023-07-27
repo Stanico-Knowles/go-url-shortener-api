@@ -8,7 +8,9 @@ This is a URL shortening API built with the Go Gin web framework and Gorm ORM. I
 
 ### Built With
 
-<img src="https://raw.githubusercontent.com/gin-gonic/logo/master/color.png" height="200" width="150"/>
+<a href="https://gin-gonic.com/">
+    <img src="https://raw.githubusercontent.com/gin-gonic/logo/master/color.png" height="200" width="150"/>
+</a>
 
 ## Getting Started
 
@@ -39,7 +41,3 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 Project Link: [https://github.com/Stanico-Knowles/go-url-shortener-api](https://github.com/Stanico-Knowles/go-url-shortener-api)
-
-<!-- IMAGES -->
-
-[React.js]: https://raw.githubusercontent.com/gin-gonic/logo/master/color.png
