@@ -5,6 +5,7 @@ import (
 	shortenerattributes "go-url-shortener-api/src/url/attributes"
 	urlenums "go-url-shortener-api/src/url/enums"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -56,7 +57,15 @@ func (controller *urlShortenerController) GetOriginalURL(ctx *gin.Context) {
 }
 
 func (controller *urlShortenerController) GetURLSByUserID(ctx *gin.Context) {
-	urls, err := controller.service.GetURLSByUserID(ctx.GetString("userId"))
+	var pageSize int
+	var pageNumber int
+	if pageSize, _ = strconv.Atoi(ctx.Query("pageSize")); pageSize > 100 || pageSize < 1 {
+		pageSize = 10
+	}
+	if pageNumber, _ = strconv.Atoi(ctx.Query("pageNumber")); pageNumber < 1 {
+		pageNumber = 1
+	}
+	urls, err := controller.service.GetURLSByUserID(ctx.GetString("userId"), pageSize, pageNumber)
 	if err != (middlewares.ErrorResponse{}) {
 		ctx.JSON(err.Status, gin.H{"error": err.Message})
 		return
