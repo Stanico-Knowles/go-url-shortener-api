@@ -15,7 +15,7 @@ type URLShortenerRepo interface {
 	CreateShortURL(originalUrl *shortenerattributes.CreateShortURLAttributes) (*shortenerattributes.ShortUrlResponseAttributes, error)
 	GetOriginalURL(shortUrl string) (*shortenerattributes.ShortUrlResponseAttributes, error)
 	GetURLSByOriginalURL(originalUrl string) (*shortenerattributes.ShortUrlResponseAttributes, error)
-	GetURLSByUserID(userID string, pageSize int, pageNumber int) ([]*shortenerattributes.ShortUrlResponseAttributes, error)
+	GetURLSByUserID(userID string, pageSize int, pageNumber int) ([]*shortenerattributes.ShortUrlResponseAttributes, int64, error)
 	GetCountOfField(field string, value string) (int64, error)
 }
 
@@ -74,13 +74,15 @@ func (repo *urlShortenerRepo) GetURLSByOriginalURL(originalUrl string) (*shorten
 	return toURLResponseDTO(&urlShortener), nil
 }
 
-func (repo *urlShortenerRepo) GetURLSByUserID(userID string, pageSize int, pageNumber int) ([]*shortenerattributes.ShortUrlResponseAttributes, error) {
+func (repo *urlShortenerRepo) GetURLSByUserID(userID string, pageSize int, pageNumber int) ([]*shortenerattributes.ShortUrlResponseAttributes, int64, error) {
 	var urlResponseDTO []*shortenerattributes.ShortUrlResponseAttributes
 	result := repo.DB.Model(&URL{}).Where("user_id = ?", userID).Offset((pageNumber - 1) * pageSize).Limit(pageSize).Find(&urlResponseDTO)
 	if result.Error != nil {
-		return nil, result.Error
+		return nil, 0, result.Error
 	}
-	return urlResponseDTO, nil
+	var count int64
+	result.Count(&count)
+	return urlResponseDTO, count, nil
 
 }
 

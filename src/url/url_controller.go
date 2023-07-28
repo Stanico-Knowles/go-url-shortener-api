@@ -65,10 +65,10 @@ func (controller *urlShortenerController) GetURLSByUserID(ctx *gin.Context) {
 	if pageNumber, _ = strconv.Atoi(ctx.Query("pageNumber")); pageNumber < 1 {
 		pageNumber = 1
 	}
-	urls, err := controller.service.GetURLSByUserID(ctx.GetString("userId"), pageSize, pageNumber)
+	urls, count, err := controller.service.GetURLSByUserID(ctx.GetString("userId"), pageSize, pageNumber)
 	if err != (middlewares.ErrorResponse{}) {
 		ctx.JSON(err.Status, gin.H{"error": err.Message})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"urls": urls})
+	ctx.JSON(http.StatusOK, gin.H{"urls": urls, "totalRecords": count})
 }
